@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+   <head>
+       <!-- Meta tags Obrigatórias -->
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <title>EMPATHY::assistente</title>
+    
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+      <link href="style.css" rel="stylesheet">
+   <style>
+     .row{
+       margin-bottom: 30px;
+     }
+     .row > div {
+       padding-left: 0;
+     }
+   </style>   
+   </head>
+   <body>
+      <!-- Image and text -->
+      
+      <nav class="navbar fixed-top navbar-dark bg-dark">
+          <a class="navbar-brand" href="#">
+              <img src="logo.jpg" height="50" class="d-inline-block align-top" alt="">
+          </a>
+          <span class="text-white">ASSISTENTE DE REUNIÃO</span>
+      </nav>
+      
+      <div class="container">
+        <div class="row">
+            <h4>Local e data:</h4>
+        </div>
+        <div class="row">
+            <div class="col-sm-8">
+                <input type="text" class="form-control" id="local" placeholder="">
+            </div>
+            <div class="col-sm-4">
+                <input type="text" class="form-control" id="data" placeholder="">
+            </div>
+        </div>
+
+          
+
+        <div class="row">
+            <h4>Participantes desta Reunião:</h4>
+        </div>
+        <div class="row">
+            <form id="form-participantes" class="form-inline">
+              
+                <div class="form-group">
+                  <!--<label for="nome">Nome:</label>-->
+                  <input type="text" class="form-control" id="nome" placeholder="Nome Completo">
+                </div>
+                <div class="form-group">
+                    <!--<label for="empresa">Empresa:</label>-->
+                    <input type="text" class="form-control" id="empresa" placeholder="Empresa">
+                </div>
+                <div class="form-group">
+                    <!--<label for="email">@</label>-->
+                    <input type="email" class="form-control" id="email" placeholder="nome@exemplo.com">
+                </div>
+                <div class="form-group">
+                   <!-- <label for="telefona">Celular:</label>-->
+                    <input type="text" class="form-control" id="telefone" placeholder="(011) 9-9876-5432">
+                </div>
+              
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Adicionar</button>
+                </div>  
+                
+             </form> 
+        </div>
+        <div class="row">
+            <ul id="lista-participantes" class="list-group list-group-flush"></ul>
+        </div>
+        <div class="row">
+            <p>Monitoramento dos comandos de voz. O sistema esta sempre escutando para identificar as intenções de ação...</p>
+            <textarea id="comando" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="row">
+            <img  id="fita" src="fita-estatica.png" alt="" height="100" class="rounded mx-auto d-block">
+        </div>
+
+        <div class="row">
+          <div class=" form-group col-md-12 col-xs-12">
+              <textarea id="campotexto" class="form-control" rows="6"></textarea>
+              <h4 id="parag1">Captando audio em segundo plano...</h4>
+          </div>
+
+          <div class="col-md-12 col-xs-12">
+              <input id="micro" type="image" src="microfone.png">
+              <p id="parag2">Gravar</p>
+          </div>
+        </div>
+
+         <div class="row">
+            <div class="col-lg-8 col-sm-4 form-group">
+               <label><span style="color: rgb(252, 76, 111);">Dê um nome para esta ata:</span></label>
+               <input id="titulo" type="text" class="form-control">
+            </div>
+
+            <div class="col-lg-3 col-sm-2 form-group">
+               <button id="btnSalvar" class="form-control" onclick="salvar()"><p>Registra Ata</p></button> 
+            </div>
+         </div>  
+
+      </div>
+   
+   <!-- jQuery primeiro, depois Popper.js, depois Bootstrap JS -->
+   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+
+    <script type="text/javascript" src="script.js"></script>
+    <script type="text/javascript" src="FileSaver.js"></script>
+    <script>
+      
+      var local_da_reuniao = 'Escritório EMPATHY'
+      var data_da_reuniao = ''
+      var hora_da_reuniao = ''
+      var id_reuniao = ''
+      var frm_part = document.getElementById("form-participantes")
+      var data_input = document.getElementById("data")
+      var local_input = document.getElementById("local")
+      
+      window.addEventListener('DOMContentLoaded', preencheOsCamposLocaleData())
+
+      var participantes = [];
+
+      frm_part.onsubmit = function(event){
+        event.preventDefault()
+        var membro = {
+          "nome":frm_part.elements["nome"].value,
+          "empresa":frm_part.elements["empresa"].value,
+          "email":frm_part.elements["email"].value,
+          "telefone":frm_part.elements["telefone"].value
+        }
+        console.log(JSON.stringify(membro))
+        participantes.push(membro)
+        console.log(JSON.stringify(participantes))
+        listaParticipantesDaReuniao()
+        frm_part.reset();
+      }
+
+      function listaParticipantesDaReuniao(){
+        var i;
+        var lista_part = document.getElementById("lista-participantes")
+        lista_part.innerHTML = ''
+        console.log('participantes: ' + participantes.length)
+          for (i = 0; i < participantes.length; i++) {
+            var entry = document.createElement('li');
+            entry.classList.add("list-group-item")
+            var index = i + 1 
+            entry.appendChild(document.createTextNode(index + ': ' +  participantes[i].nome + ' | ' + participantes[i].empresa));
+            console.log(entry)
+            lista_part.appendChild(entry);
+          }
+
+      }
+      
+      function preencheOsCamposLocaleData(){
+        local_input.value = local_da_reuniao;
+        data_input.value = getDate();
+
+      }
+      
+      function getDate(){
+        let todaydate = new Date();
+        let day = todaydate.getDate();
+        let month = todaydate.getMonth() + 1;
+        let year = todaydate.getFullYear();
+        let datestring = day + "/" + month + "/" + year;
+        data_da_reuniao = todaydate
+        hora_da_reuniao = todaydate.toLocaleTimeString('pt-BR', { hour12: false })
+        id_reuniao: todaydate.getTime();
+        return datestring
+      } 
+
+
+
+      function montaCabecalhoLocal(){
+          let str = ''
+          str += 'ATA DE REUNIAO - ' + id_reuniao + '\n'
+          str += '==============//================'+ '\n\n'
+          str += 'LOCAL: ' + local_input + '\n'
+          str += 'DATA: ' + data_input + '\n' 
+
+          return str
+      }
+
+    
+    </script>    
+   
+    </body>
+</html>
+
+
